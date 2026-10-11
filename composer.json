@@ -1,0 +1,11 @@
+{
+    "description": "Deleted files go to a trash folder first, so they can be restored.",
+    "autoload": {
+        "psr-4": {
+            "TrashBin\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "TrashBinExtension"
+    }
+}

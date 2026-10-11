@@ -1,0 +1,35 @@
+{
+    "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
+    "id": "trash-bin",
+    "name": "Trash Bin",
+    "version": "1.0.0",
+    "requires": {
+        "panel": "^2.0.0-dev",
+        "sdk": "^2.0.0-beta.4",
+        "php": "^8.3"
+    },
+    "description": "Deleted files go to a trash folder first, so they can be restored.",
+    "author": "Izuna Seikatsu",
+    "provider": "TrashBin\\TrashBinProvider",
+    "ui": {
+        "entry": "dist/client.js",
+        "mode": "native",
+        "prefix": "trash",
+        "screens": [
+            {
+                "id": "trash",
+                "area": "server",
+                "path": "trash",
+                "nav": {
+                    "label": "Trash",
+                    "icon": "trash-2",
+                    "order": 45
+                },
+                "permission": [
+                    "file.delete"
+                ]
+            }
+        ]
+    },
+    "icon": "trash-2"
+}
