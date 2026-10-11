@@ -1,9 +1,9 @@
 # Trash Bin for Pterodactyl
 
-[![Release](https://img.shields.io/github/v/release/1zun4/Pterodactyl-Extension-Trash-Bin?style=flat-square)](https://github.com/1zun4/Pterodactyl-Extension-Trash-Bin/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/1zun4/Pterodactyl-Extension-Trash-Bin/total?style=flat-square)](https://github.com/1zun4/Pterodactyl-Extension-Trash-Bin/releases)
+[![Release](https://img.shields.io/github/v/release/CCBlueX/Pterodactyl-Extension-Trash-Bin?style=flat-square)](https://github.com/CCBlueX/Pterodactyl-Extension-Trash-Bin/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/CCBlueX/Pterodactyl-Extension-Trash-Bin/total?style=flat-square)](https://github.com/CCBlueX/Pterodactyl-Extension-Trash-Bin/releases)
 [![Pterodactyl](https://img.shields.io/badge/Pterodactyl-2.0-0e4688?style=flat-square)](https://pterodactyl.io)
-[![License](https://img.shields.io/github/license/1zun4/Pterodactyl-Extension-Trash-Bin?style=flat-square)](LICENSE)
+[![License](https://img.shields.io/github/license/CCBlueX/Pterodactyl-Extension-Trash-Bin?style=flat-square)](LICENSE)
 
 Files deleted in the file manager go to a trash first, so a wrong click can be undone. Works with every game.
 
@@ -11,7 +11,7 @@ Files deleted in the file manager go to a trash first, so a wrong click can be u
 
 ## Install
 
-1. Download `trash-bin-<version>.pteroext` from the [latest release](https://github.com/1zun4/Pterodactyl-Extension-Trash-Bin/releases/latest).
+1. Download `trash-bin-<version>.pteroext` from the [latest release](https://github.com/CCBlueX/Pterodactyl-Extension-Trash-Bin/releases/latest).
 2. Install and enable it under **Admin → Extensions**.
 3. Delete a file as usual, then open the server's **Trash** tab.
 
