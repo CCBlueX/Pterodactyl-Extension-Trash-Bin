@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Pterodactyl\Models\Server;
 use TrashBin\Models\Item;
+use TrashBin\Models\ServerSetting;
 use TrashBin\Settings;
 use TrashBin\Trash;
 
@@ -19,12 +20,25 @@ final class TrashController
     {
         $this->authorize($request, $server);
         $items = Item::query()->where('server_id', $server->id)->latest('deleted_at')->get();
+        $setting = ServerSetting::query()->with('user')->find($server->id);
 
         return new JsonResponse([
             'items' => $items->map(static fn (Item $item): array => $item->present()),
             'size' => (int) $items->sum('size'),
             'retention_days' => $this->settings->retentionDays(),
+            'enabled' => $setting?->enabled ?? true,
+            'changed' => $setting?->updated_at ? ['by' => $setting->user?->username, 'at' => $setting->updated_at->toAtomString()] : null,
         ]);
+    }
+
+    public function update(Request $request, Server $server): JsonResponse
+    {
+        $this->authorize($request, $server);
+        $data = $request->validate(['enabled' => ['required', 'boolean']]);
+
+        ServerSetting::query()->updateOrCreate(['server_id' => $server->id], ['enabled' => (bool) $data['enabled'], 'updated_by' => $request->user()?->id, 'updated_at' => now()]);
+
+        return $this->index($request, $server);
     }
 
     public function restore(Request $request, Server $server, string $id): JsonResponse

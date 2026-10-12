@@ -1,8 +1,31 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button, Dialog, NamedIcon, ServerContentBlock, Table, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
-import { deleteItem, emptyTrash, getTrash, keys, restoreItem, type TrashContents, type TrashItem } from '../api';
+import { Button, Dialog, NamedIcon, ServerContentBlock, Switch, Table, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { deleteItem, emptyTrash, getTrash, keys, restoreItem, setTrashEnabled, type TrashContents, type TrashItem } from '../api';
 import { formatAgo, formatBytes } from '../format';
+
+function Summary({ data }: { data: TrashContents }) {
+    const kept = data.retention_days > 0 ? `for ${data.retention_days} days` : 'until you empty the trash';
+
+    return (
+        <p className='trash:text-sm trash:text-muted-foreground'>
+            {data.enabled ? (
+                <>
+                    Files you delete in the file manager land here {kept}. To skip the trash, tick them there and choose <span className='trash:text-foreground'>Delete permanently</span>.
+                </>
+            ) : (
+                <>
+                    The trash is off: files you delete in the file manager are gone for good.
+                    {data.items.length > 0 && ` What is already here stays ${kept}.`}
+                </>
+            )}
+            {data.size > 0 && ` The trash takes up ${formatBytes(data.size)}.`}
+        </p>
+    );
+}
+
+const changedLine = ({ enabled, changed }: TrashContents) =>
+    changed ? `Turned ${enabled ? 'on' : 'off'} by ${changed.by ?? 'a removed user'} ${formatAgo(changed.at)}.` : 'Turn it off to delete files for good right away.';
 
 export default function TrashScreen() {
     const { identifier } = useCurrentServerRequired().attributes;
@@ -20,22 +43,34 @@ export default function TrashScreen() {
     });
     const removal = useMutation({ mutationFn: (item: TrashItem) => deleteItem(identifier, item.id), onSuccess: (result) => (update(result), setDeleting(null)), onError });
     const clearing = useMutation({ mutationFn: () => emptyTrash(identifier), onSuccess: (result) => (update(result), setEmptying(false)), onError });
+    const toggling = useMutation({
+        mutationFn: (enabled: boolean) => setTrashEnabled(identifier, enabled),
+        onSuccess: (result) => (update(result), toast.success(result.enabled ? 'Deleted files go to the trash again.' : 'Deleted files now skip the trash.')),
+        onError,
+    });
 
     const data = trash.data;
 
     return (
         <ServerContentBlock title='Trash'>
             <div className='trash:mb-4 trash:flex trash:flex-col trash:gap-3 trash:sm:flex-row trash:sm:items-center trash:sm:justify-between'>
-                <p className='trash:text-sm trash:text-muted-foreground'>
-                    {data && (data.retention_days > 0 ? `Deleted files stay here for ${data.retention_days} days.` : 'Deleted files stay here until you empty the trash.')}
-                    {data && data.size > 0 && ` They take up ${formatBytes(data.size)}.`}
-                </p>
+                {data && <Summary data={data} />}
                 {data && data.items.length > 0 && (
                     <Button.Danger size='small' className='trash:shrink-0' onClick={() => setEmptying(true)}>
                         Empty trash
                     </Button.Danger>
                 )}
             </div>
+            {data && (
+                <Switch
+                    className='trash:mb-4 trash:rounded-sm trash:bg-card trash:p-4'
+                    checked={data.enabled}
+                    disabled={toggling.isPending}
+                    onChange={(enabled) => toggling.mutate(enabled)}
+                    label='Move deleted files to the trash'
+                    description={changedLine(data)}
+                />
+            )}
             <Table
                 rows={data?.items ?? []}
                 keyOf={(item) => item.id}

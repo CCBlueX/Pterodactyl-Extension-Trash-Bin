@@ -6,11 +6,13 @@ namespace TrashBin\Panel;
 
 use Pterodactyl\Contracts\Files\DeletesFiles;
 use Pterodactyl\Models\Server;
+use TrashBin\Models\ServerSetting;
 use TrashBin\Support\Paths;
 use TrashBin\Trash;
 
 /**
- * Moves what the file manager deletes into the trash. Deleting inside the trash is final.
+ * Moves what the file manager deletes into the trash, unless the server turned that off.
+ * Deleting inside the trash is final.
  */
 final readonly class TrashingDeleter implements DeletesFiles
 {
@@ -18,7 +20,7 @@ final readonly class TrashingDeleter implements DeletesFiles
 
     public function delete(Server $server, ?string $root, array $files): void
     {
-        if (! FileManager::is('delete') || Paths::insideTrash((string) $root) || in_array(Paths::TRASH, array_map(static fn ($file): string => Paths::join($root, (string) $file), $files), true)) {
+        if (! FileManager::is('delete') || Paths::touchesTrash($root, $files) || ! ServerSetting::trashes($server)) {
             $this->inner->delete($server, $root, $files);
 
             return;

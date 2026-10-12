@@ -22,6 +22,26 @@ final class Paths
     }
 
     /**
+     * Whether deleting these names in the folder would touch the trash folder or what is in it.
+     *
+     * @param  array<array-key, mixed>  $names
+     */
+    public static function touchesTrash(?string $root, array $names): bool
+    {
+        if (self::insideTrash((string) $root)) {
+            return true;
+        }
+
+        foreach ($names as $name) {
+            if (self::insideTrash(self::join($root, (string) $name))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * The name, or the first free "name (n).ext" when it is taken.
      *
      * @param  list<string>  $taken

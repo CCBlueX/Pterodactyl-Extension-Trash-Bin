@@ -23,6 +23,15 @@ final class PathsTest extends TestCase
         $this->assertFalse(Paths::insideTrash('.trashy/file'));
     }
 
+    public function test_deletes_that_touch_the_trash_are_spotted(): void
+    {
+        $this->assertTrue(Paths::touchesTrash('/', ['world', '.trash']));
+        $this->assertTrue(Paths::touchesTrash('/.trash/abc', ['x.yml']));
+        $this->assertTrue(Paths::touchesTrash(null, ['/.trash/abc']));
+        $this->assertFalse(Paths::touchesTrash('/plugins', ['.trash']));
+        $this->assertFalse(Paths::touchesTrash('/', ['.trashy', 'world']));
+    }
+
     public function test_taken_names_get_a_number(): void
     {
         $this->assertSame('config.yml', Paths::free('config.yml', ['other.yml']));
