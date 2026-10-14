@@ -1,32 +1,27 @@
-import type { ComponentProps } from 'react';
 import { afterEach, expect, test } from 'vitest';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
-import { createComponentTestHost, createTestFileManager } from '@pterodactyl/sdk/testing';
+import { cleanup, screen, waitFor } from '@testing-library/react';
+import { createExtensionTestHost, createTestServer, renderView } from '@pterodactyl/sdk/testing';
 import TrashLink from './TrashLink';
 
-let dispose: (() => void) | undefined;
+let rendered: { unmount: () => void } | undefined;
 
 afterEach(() => {
+    rendered?.unmount();
+    rendered = undefined;
     cleanup();
-    dispose?.();
-    dispose = undefined;
 });
 
-/** The panel's real file manager toolbar with our slot output right after it, as the panel renders it. */
-function renderToolbar(permissions = { create: true, update: true, delete: true, archive: true }) {
-    const model = createTestFileManager({ permissions });
-    const component = createComponentTestHost('server.files.manager', { extensionId: 'trash-bin', prefix: 'trash', model });
-    const { Default, parts } = component.props;
-    const NativeToolbar = parts.toolbar;
-    const toolbar = (props: ComponentProps<typeof NativeToolbar>) => (
-        <>
-            <NativeToolbar {...props} />
+/** The panel's real file manager with our component in the toolbar slot, as the panel renders it. */
+function renderToolbar(fixture: 'directory' | 'readOnly' = 'directory') {
+    const host = createExtensionTestHost({ extensionId: 'trash-bin', prefix: 'trash', server: createTestServer() });
+    // The view renders the slot outside any server screen, so the test host provides the server context.
+    const InSlot = () => (
+        <host.Wrapper>
             <TrashLink />
-        </>
+        </host.Wrapper>
     );
-    dispose = component.dispose;
-
-    return render(<Default parts={{ toolbar }} />, { wrapper: component.Wrapper });
+    const view = renderView('server.files.manager', { fixture, prefix: 'trash', slots: { 'server.files.toolbar': InSlot } });
+    rendered = { unmount: () => (view.unmount(), host.dispose()) };
 }
 
 const findTrash = () => waitFor(() => screen.getByRole('button', { name: 'Trash' }));
@@ -42,7 +37,7 @@ function otherHost(order: number) {
 }
 
 test('sits first in the native button group, before New folder', async () => {
-    const { unmount } = renderToolbar();
+    renderToolbar();
 
     const trash = await findTrash();
     const folder = screen.getByRole('button', { name: 'New folder' });
@@ -54,7 +49,8 @@ test('sits first in the native button group, before New folder', async () => {
     expect(host.parentElement!.firstElementChild).toBe(host);
     expect(trash.className).toContain('trash:max-md:col-span-full!');
 
-    unmount();
+    rendered!.unmount();
+    rendered = undefined;
     expect(document.querySelector('[data-file-toolbar-host]')).toBeNull();
 });
 
@@ -76,7 +72,7 @@ test('comes after the Transfer button and before later ones', async () => {
 });
 
 test('stays in the slot when there is no button group', async () => {
-    renderToolbar({ create: false, update: false, delete: true, archive: true });
+    renderToolbar('readOnly');
 
     const trash = await screen.findByRole('button', { name: 'Trash' });
 
