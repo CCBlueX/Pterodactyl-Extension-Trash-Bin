@@ -38,7 +38,7 @@ test('says when the trash is empty', async () => {
     vi.mocked(api.getTrash).mockResolvedValue({ items: [], size: 0, retention_days: 0, enabled: true, changed: null });
     const host = renderScreen();
 
-    expect(await screen.findByText('The trash is empty.')).toBeTruthy();
+    expect(await screen.findByText('The trash is empty')).toBeTruthy();
     expect(screen.getByText(/land here until you empty the trash\./)).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Empty trash' })).toBeNull();
     host.dispose();

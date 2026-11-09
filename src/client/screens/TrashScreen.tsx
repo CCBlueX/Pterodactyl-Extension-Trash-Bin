@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button, Dialog, NamedIcon, ServerContentBlock, Switch, Table, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { Button, Dialog, Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle, NamedIcon, ServerContentBlock, Switch, Table, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
 import { deleteItem, emptyTrash, getTrash, keys, restoreItem, setTrashEnabled, type TrashContents, type TrashItem } from '../api';
 import { formatAgo, formatBytes } from '../format';
 
@@ -75,7 +75,23 @@ export default function TrashScreen() {
                 rows={data?.items ?? []}
                 keyOf={(item) => item.id}
                 isFetching={trash.isFetching}
-                emptyState={trash.isLoading ? 'Loading...' : trash.isError ? httpErrorToHuman(trash.error) : 'The trash is empty.'}
+                emptyState={
+                    trash.isLoading ? (
+                        'Loading...'
+                    ) : trash.isError ? (
+                        httpErrorToHuman(trash.error)
+                    ) : (
+                        <Empty>
+                            <EmptyHeader>
+                                <EmptyMedia variant='icon'>
+                                    <NamedIcon name='trash-2' />
+                                </EmptyMedia>
+                                <EmptyTitle>The trash is empty</EmptyTitle>
+                                <EmptyDescription>Files you delete in the file manager show up here.</EmptyDescription>
+                            </EmptyHeader>
+                        </Empty>
+                    )
+                }
                 columns={[
                     {
                         id: 'name',
@@ -106,7 +122,14 @@ export default function TrashScreen() {
                     },
                 ]}
             />
-            <Dialog.Confirm open={deleting !== null} onClose={() => setDeleting(null)} title={`Delete ${deleting?.name} forever?`} confirm='Delete forever' pending={removal.isPending} onConfirmed={() => deleting && removal.mutate(deleting)}>
+            <Dialog.Confirm
+                open={deleting !== null}
+                onClose={() => setDeleting(null)}
+                title={deleting?.name ? `Delete ${deleting.name} forever?` : 'Delete this item forever?'}
+                confirm='Delete forever'
+                pending={removal.isPending}
+                onConfirmed={() => deleting && removal.mutate(deleting)}
+            >
                 It cannot be restored afterwards.
             </Dialog.Confirm>
             <Dialog.Confirm open={emptying} onClose={() => setEmptying(false)} title='Empty the trash?' confirm='Empty trash' pending={clearing.isPending} onConfirmed={() => clearing.mutate()}>
